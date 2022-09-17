@@ -1,11 +1,11 @@
 import express from 'express';
 
+import { usersRouter } from './routes/users';
+
 const app = express();
 app.use(express.json());
 
-app.get('/api/users/currentuser', (req, res) => {
-  res.send('Hi there');
-});
+app.use('/api/users', usersRouter);
 
 const PORT = 3000;
 app.listen(PORT, () => {
