@@ -9,7 +9,7 @@ app.use(express.json());
 
 app.use('/api/users', usersRouter);
 
-app.use('*', () => {
+app.all('*', () => {
   throw new NotFoundError();
 });
 
