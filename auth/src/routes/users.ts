@@ -5,8 +5,8 @@ import bcrypt from "bcrypt";
 
 import {User} from "../models/user";
 import {BadRequestError} from "../errors/bad-request-error";
-import {validateRequest} from "../middlewares/validate-request";
-import {currentUser} from "../middlewares/current-user";
+import {validateRequest} from "../middleware/validate-request";
+import {currentUser} from "../middleware/current-user";
 
 const router = express.Router();
 
