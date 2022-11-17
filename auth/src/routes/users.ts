@@ -4,10 +4,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from "bcrypt";
 
 import {User} from "../models/user";
-import {BadRequestError} from "../errors/bad-request-error";
-import {validateRequest} from "../middleware/validate-request";
-import {currentUser} from "../middleware/current-user";
-import { requireAuth } from '../middleware/require-auth';
+import {BadRequestError, validateRequest, currentUser} from "@campus-market/common";
 
 const router = express.Router();
 
