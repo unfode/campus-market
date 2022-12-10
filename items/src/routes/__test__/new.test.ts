@@ -1,7 +1,31 @@
 import request from "supertest";
+
 import {app} from "../../app";
 import {Item} from "../../models/item";
-import * as assert from "assert";
+import {natsWrapper} from "../../nats-wrapper";
+
+
+// expected behavior for valid inputs
+it('should create an item with valid inputs', async () => {
+  let items = await Item.find({});
+  expect(items.length).toEqual(0);
+
+  await request(app)
+    .post('/api/items')
+    .set('Cookie', global.signup())
+    .send({
+      title: 'MacBook',
+      price: 1000
+    })
+    .expect(201);
+
+  expect(natsWrapper.client.publish).toHaveBeenCalled();
+
+  items = await Item.find({});
+  expect(items.length).toEqual(1);
+});
+
+// expected behavior for various kinds of invalid inputs
 
 it('should have a route handler listening to /api/items for POST requests', async () => {
   const response = await request(app)
@@ -65,19 +89,5 @@ it('should return an error if an invalid price is provided', async () => {
     .expect(400);
 });
 
-it('should create an item with valid inputs', async () => {
-  let items = await Item.find({});
-  expect(items.length).toEqual(0);
 
-  await request(app)
-    .post('/api/items')
-    .set('Cookie', global.signup())
-    .send({
-      title: 'MacBook',
-      price: 1000
-    })
-    .expect(201);
 
-  items = await Item.find({});
-  expect(items.length).toEqual(1);
-});

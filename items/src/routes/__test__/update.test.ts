@@ -1,6 +1,43 @@
 import request from "supertest";
-import {app} from "../../app";
 import mongoose from "mongoose";
+
+import {app} from "../../app";
+import {natsWrapper} from "../../nats-wrapper";
+
+
+// expected behavior for valid inputs
+it('should update the item if valid inputs are provided', async function () {
+  const cookie = global.signup();
+  const response = await request(app)
+    .post('/api/items')
+    .set('Cookie', cookie)
+    .send({
+      title: 'MacBook',
+      price: 1000
+    });
+
+  const updatedTitle = 'MacBook Air';
+  const updatedPrice = 1200;
+  await request(app)
+    .put(`/api/items/${response.body.id}`)
+    .set('Cookie', cookie)
+    .send({
+      title: updatedTitle,
+      price: updatedPrice
+    })
+    .expect(200);
+
+  expect(natsWrapper.client.publish).toHaveBeenCalled();
+
+  const itemResponse = await request(app)
+    .get(`/api/items/${response.body.id}`)
+    .send();
+
+  expect(itemResponse.body.title).toEqual(updatedTitle);
+  expect(itemResponse.body.price).toEqual(updatedPrice);
+});
+
+// expect behaviors for various kinds of invalid inputs
 
 it('should return a 404 if the provided id does not exist', async function () {
   const randomItemId = new mongoose.Types.ObjectId().toHexString();
@@ -72,32 +109,3 @@ it('should return a 400 if the user provides an invalid title or price', async f
     })
     .expect(400);
 });
-
-it('should update the item if valid inputs are provided', async function () {
-  const cookie = global.signup();
-  const response = await request(app)
-    .post('/api/items')
-    .set('Cookie', cookie)
-    .send({
-      title: 'MacBook',
-      price: 1000
-    });
-
-  const updatedTitle = 'MacBook Air';
-  const updatedPrice = 1200;
-  await request(app)
-    .put(`/api/items/${response.body.id}`)
-    .set('Cookie', cookie)
-    .send({
-      title: updatedTitle,
-      price: updatedPrice
-    })
-    .expect(200);
-
-  const itemResponse = await request(app)
-    .get(`/api/items/${response.body.id}`)
-    .send();
-
-  expect(itemResponse.body.title).toEqual(updatedTitle);
-  expect(itemResponse.body.price).toEqual(updatedPrice);
-}); 

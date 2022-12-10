@@ -2,6 +2,9 @@ import express, {Request, Response} from "express";
 import {NotAuthorizedError, NotFoundError, requireAuth, validateRequest} from "@campus-market/common";
 import {body} from "express-validator";
 import {Item} from "../models/item";
+import {ItemCreatedPublisher} from "../events/publishers/item-created-publisher";
+import {ItemUpdatedPublisher} from "../events/publishers/item-updated-publisher";
+import {natsWrapper} from "../nats-wrapper";
 
 
 const router = express.Router();
@@ -36,6 +39,13 @@ router.put(
     });
 
     await item.save();
+
+    new ItemUpdatedPublisher(natsWrapper.client).publish({
+      id: item.id,
+      title: item.title,
+      price: item.price,
+      userId: item.userId
+    });
 
     res.send(item);
   }
@@ -72,6 +82,12 @@ router.post(
       userId: req.currentUser!.id
     });
     await item.save();
+    await new ItemCreatedPublisher(natsWrapper.client).publish({
+      id: item.id,
+      title: item.title,
+      price: item.price,
+      userId: item.userId
+    });
 
     res.status(201).send(item);
   }
